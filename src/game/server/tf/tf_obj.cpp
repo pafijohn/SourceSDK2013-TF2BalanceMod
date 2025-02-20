@@ -2941,8 +2941,10 @@ bool CBaseObject::CanBeUpgraded( CTFPlayer *pPlayer )
 //-----------------------------------------------------------------------------
 int CBaseObject::Command_Repair( CTFPlayer *pActivator, float flAmount, float flRepairMod, float flRepairToMetalRatio /*= 3.f*/, bool bSendEvent /*= false*/ )
 {
-	if ( !CanBeRepaired() )
+	if (!CanBeRepaired())
+	{
 		return false;
+	}
 	
 	float flRepairAmountMax = flAmount * flRepairMod;
 	int iRepairAmount = Min( RoundFloatToInt( flRepairAmountMax ), GetMaxHealth() - RoundFloatToInt( GetHealth() ) );

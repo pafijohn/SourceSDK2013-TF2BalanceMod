@@ -71,6 +71,7 @@ public:
 	virtual int		GetTracerAttachment( void );
 
 	virtual bool	IsUpgrading( void ) const { return m_iState == SENTRY_STATE_UPGRADING; }
+	virtual bool	IsInactive(void) const { return m_iState == SENTRY_STATE_INACTIVE; }
 
 	virtual float	GetTimeSinceLastFired( void ) const		{ return m_timeSinceLastFired.GetElapsedTime();	}
 
@@ -114,7 +115,7 @@ public:
 	virtual int		GetUpgradeMetalRequired();
 	bool			IsScaledSentry() { return m_flScaledSentry != 1.0f; }
 
-	virtual int	GetShieldLevel() { return m_nShieldLevel; }
+	virtual int	GetShieldLevel() const { return m_nShieldLevel; }
 
 	virtual bool	IsTruceValidForEnt( void ) const OVERRIDE { return true; }
 

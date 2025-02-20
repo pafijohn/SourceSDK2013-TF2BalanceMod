@@ -46,6 +46,7 @@
 #include "baseachievement.h"
 #include "achievements_tf.h"
 #include "c_tf_weapon_builder.h"
+#include "c_obj_sentrygun.h"
 #include "dt_utlvector_recv.h"
 #include "recvproxy.h"
 #include "c_tf_weapon_builder.h"
@@ -12283,14 +12284,22 @@ bool CTFPlayer::CanPickupBuilding( CBaseObject *pPickupObject )
 	if ( GetActiveTFWeapon() && GetActiveTFWeapon()->AutoFiresFullClip() && GetActiveTFWeapon()->Clip1() > 0 )
 		return false;
 
+#ifdef CLIENT_DLL
+	C_ObjectSentrygun* sentryGun = dynamic_cast<C_ObjectSentrygun*>(pPickupObject);
+#else
+	CObjectSentrygun* sentryGun = dynamic_cast<CObjectSentrygun*>(pPickupObject);
+#endif
+	if (sentryGun && (sentryGun->IsInactive() || sentryGun->GetShieldLevel() > 0))
+	{
+		return false;
+	}
+
  	// Knockout powerup restricts user to melee only, so cannot equip other items such as building pickups
 	if ( m_Shared.GetCarryingRuneType() == RUNE_KNOCKOUT )
-//		ClientPrint( this, HUD_PRINTCENTER, "#TF_Powerup_Pickup_Deny" );
-		{
+	{
 		ClientPrint( this, HUD_PRINTCENTER, "#TF_Powerup_No_Building_Pickup" );
 			return false;
-		}
-
+	}
 
 	// Check it's within range
 	int nPickUpRangeSq = TF_BUILDING_PICKUP_RANGE * TF_BUILDING_PICKUP_RANGE;

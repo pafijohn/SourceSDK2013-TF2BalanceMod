@@ -340,9 +340,9 @@ public:
 
 	bool			IsMapPlaced( void ){ return m_bWasMapPlaced; }
 
-	virtual int	GetShieldLevel() { return SHIELD_NONE; }
+	virtual int	GetShieldLevel() const { return SHIELD_NONE; }
 
-	virtual bool CanBeRepaired() const { return !IsDisposableBuilding(); }
+	virtual bool CanBeRepaired() const { return GetShieldLevel() == SHIELD_NONE && !IsDisposableBuilding(); }
 
 	Vector GetBuildOrigin() { return m_vecBuildOrigin; }
 	Vector GetBuildCenterOfMass() { return m_vecBuildCenterOfMass; }

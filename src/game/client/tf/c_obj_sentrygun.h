@@ -63,7 +63,8 @@ public:
 	virtual void	OnPreDataChanged( DataUpdateType_t updateType );
 	virtual void	OnDataChanged( DataUpdateType_t updateType );
 
-	virtual bool	IsUpgrading( void ) const { return ( m_iState == SENTRY_STATE_UPGRADING ); }
+	virtual bool	IsUpgrading( void ) const { return m_iState == SENTRY_STATE_UPGRADING; }
+	virtual bool	IsInactive(void) const { return m_iState == SENTRY_STATE_INACTIVE; }
 
 	void			CreateLaserBeam( void );
 	void			DestroyLaserBeam( void );
@@ -71,6 +72,7 @@ public:
 	virtual void	SetDormant( bool bDormant );
 	void			CreateShield( void );
 	void			DestroyShield( void );
+	uint32			GetShieldLevel(void) const { return m_nShieldLevel; }
 
 	void			CreateSiren( void );
 	void			DestroySiren( void );
