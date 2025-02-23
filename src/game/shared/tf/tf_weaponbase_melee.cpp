@@ -149,7 +149,7 @@ bool CTFWeaponBaseMelee::Holster( CBaseCombatWeapon *pSwitchingTo )
 	if ( pPlayer )
 	{
 		pPlayer->m_Shared.SetNextMeleeCrit( MELEE_NOCRIT );
-	
+
 		int iSelfMark = 0;
 		CALL_ATTRIB_HOOK_INT( iSelfMark, self_mark_for_death );
 		if ( iSelfMark )
@@ -172,10 +172,10 @@ int	CTFWeaponBaseMelee::GetSwingRange( void )
 	{
 		int iIsSword = 0;
 		CALL_ATTRIB_HOOK_INT( iIsSword, is_a_sword )
-		if ( iIsSword )
-		{
-			return 72; // swords are typically 72
-		}
+			if ( iIsSword )
+			{
+				return 72; // swords are typically 72
+			}
 		return 48;
 	}
 }
@@ -302,13 +302,13 @@ void CTFWeaponBaseMelee::Swing( CTFPlayer *pPlayer )
 	// if ALL of these players have died when our swing has finished, and we didn't hit.
 	// This guards against me performing a "good" swing and being punished by a friend
 	// killing my target "out from under me".
-	CUtlVector< CTFPlayer * > enemyVector;
+	CUtlVector< CTFPlayer* > enemyVector;
 	CollectPlayers( &enemyVector, GetEnemyTeam( pPlayer->GetTeamNumber() ), COLLECT_ONLY_LIVING_PLAYERS );
 
 	m_potentialVictimVector.RemoveAll();
 	const float looseSwingRange = 1.2f * GetSwingRange();
 
-	for( int i=0; i<enemyVector.Count(); ++i )
+	for( int i = 0; i < enemyVector.Count(); ++i )
 	{
 		Vector toVictim = enemyVector[i]->WorldSpaceCenter() - pPlayer->Weapon_ShootPosition();
 
@@ -389,7 +389,7 @@ void CTFWeaponBaseMelee::ItemPostFrame()
 }
 
 
-bool CTFWeaponBaseMelee::DoSwingTraceInternal( trace_t &trace, bool bCleave, CUtlVector< trace_t >* pTargetTraceVector )
+bool CTFWeaponBaseMelee::DoSwingTraceInternal( trace_t &trace, bool bCleave, CUtlVector< trace_t > *pTargetTraceVector )
 {
 	// Setup a volume for the melee weapon to be swung - approx size, so all melee behave the same.
 	static Vector vecSwingMinsBase( -18, -18, -18 );
@@ -419,7 +419,7 @@ bool CTFWeaponBaseMelee::DoSwingTraceInternal( trace_t &trace, bool bCleave, CUt
 
 	CALL_ATTRIB_HOOK_FLOAT( fSwingRange, melee_range_multiplier );
 
-	Vector vecForward; 
+	Vector vecForward;
 	AngleVectors( pPlayer->EyeAngles(), &vecForward );
 	Vector vecSwingStart = pPlayer->Weapon_ShootPosition();
 	Vector vecSwingEnd = vecSwingStart + vecForward * fSwingRange;
@@ -437,7 +437,7 @@ bool CTFWeaponBaseMelee::DoSwingTraceInternal( trace_t &trace, bool bCleave, CUt
 		int nTargetCount = UTIL_EntitiesAlongRay( pList, ARRAYSIZE( pList ), ray, FL_CLIENT|FL_OBJECT );
 		
 		int nHitCount = 0;
-		for ( int i=0; i<nTargetCount; ++i )
+		for ( int i = 0; i < nTargetCount; ++i )
 		{
 			CBaseEntity *pTarget = pList[i];
 			if ( pTarget == pPlayer )
@@ -481,9 +481,9 @@ bool CTFWeaponBaseMelee::DoSwingTraceInternal( trace_t &trace, bool bCleave, CUt
 			}
 
 			if ( trace.fraction < 1.0f &&
-				 trace.m_pEnt &&
-				 trace.m_pEnt->IsBaseObject() &&
-				 trace.m_pEnt->GetTeamNumber() == pPlayer->GetTeamNumber() )
+				trace.m_pEnt &&
+				trace.m_pEnt->IsBaseObject() &&
+				trace.m_pEnt->GetTeamNumber() == pPlayer->GetTeamNumber() )
 			{
 				CBaseObject *pObject = static_cast< CBaseObject* >( trace.m_pEnt );
 				if ( pObject->HasSapper() )
@@ -530,7 +530,7 @@ bool CTFWeaponBaseMelee::DoSwingTraceInternal( trace_t &trace, bool bCleave, CUt
 					}
 
 					// This is the point on the actual surface (the hull could have hit space)
-					vecSwingEnd = trace.endpos;	
+					vecSwingEnd = trace.endpos;
 				}
 			}
 		}
@@ -540,7 +540,18 @@ bool CTFWeaponBaseMelee::DoSwingTraceInternal( trace_t &trace, bool bCleave, CUt
 }
 
 
-bool CTFWeaponBaseMelee::DoSwingTrace( trace_t &trace )
+bool CTFWeaponBaseMelee::AffectsAllies()
+{
+	int iSpeedBuffOnHit = 0;
+	CALL_ATTRIB_HOOK_INT( iSpeedBuffOnHit, speed_buff_ally );
+
+	int nGiveHealthOnHit = 0;
+	CALL_ATTRIB_HOOK_INT( nGiveHealthOnHit, add_give_health_to_teammate_on_hit );
+
+	return ( iSpeedBuffOnHit != 0 && nGiveHealthOnHit != 0 );
+}
+
+bool CTFWeaponBaseMelee::DoSwingTrace( trace_t& trace )
 {
 	return DoSwingTraceInternal( trace, false, NULL );
 }
@@ -557,14 +568,14 @@ bool CTFWeaponBaseMelee::OnSwingHit( trace_t &trace )
 	// NVNT if this is the client dll and the owner is the local player
 	//	Notify the haptics system the local player just hit something.
 #ifdef CLIENT_DLL
-	if(pPlayer==C_TFPlayer::GetLocalTFPlayer() && haptics)
-		haptics->ProcessHapticEvent(2,"Weapons","meleehit");
+	if ( pPlayer == C_TFPlayer::GetLocalTFPlayer() && haptics )
+		haptics->ProcessHapticEvent( 2, "Weapons", "meleehit" );
 #endif
 
 	bool bHitEnemyPlayer = false;
 
 	// Hit sound - immediate.
-	if( trace.m_pEnt->IsPlayer() )
+	if ( trace.m_pEnt->IsPlayer() )
 	{
 		CTFPlayer *pTargetPlayer = ToTFPlayer( trace.m_pEnt );
 
@@ -572,22 +583,17 @@ bool CTFWeaponBaseMelee::OnSwingHit( trace_t &trace )
 		// handle hitting a robot	
 		if ( TFGameRules() && TFGameRules()->IsMannVsMachineMode() )
 		{
-			if ( pTargetPlayer  && pTargetPlayer->GetTeamNumber() == TF_TEAM_PVE_INVADERS && !pTargetPlayer->IsPlayer() )
+			if ( pTargetPlayer && pTargetPlayer->GetTeamNumber() == TF_TEAM_PVE_INVADERS && !pTargetPlayer->IsPlayer() )
 			{
 				bPlayMvMHitOnly = true;
 
 				CBroadcastRecipientFilter filter;
-				// 					CSingleUserRecipientFilter filter( ToBasePlayer( GetOwner() ) );
-				// 					if ( IsPredicted() && CBaseEntity::GetPredictionPlayer() )
-				// 					{
-				// 						filter.UsePredictionRules();
-				// 					}
 
 				char szMeleeSoundStr[128] = "MVM_";
 				const char *shootsound = GetShootSound( MELEE_HIT );
 				if ( shootsound && shootsound[0] )
 				{
-					V_strcat(szMeleeSoundStr, shootsound, sizeof( szMeleeSoundStr ));
+					V_strcat( szMeleeSoundStr, shootsound, sizeof( szMeleeSoundStr ) );
 					CSoundParameters params;
 					if ( CBaseEntity::GetParametersForSound( szMeleeSoundStr, params, NULL ) )
 					{
@@ -603,15 +609,15 @@ bool CTFWeaponBaseMelee::OnSwingHit( trace_t &trace )
 					EmitSound( filter, GetOwner()->entindex(), "MVM_Weapon_Default.HitFlesh", NULL );
 				}
 			}
-		} 
-		if(! bPlayMvMHitOnly )
+		}
+		if ( !bPlayMvMHitOnly )
 		{
 			WeaponSound( MELEE_HIT );
 		}
 
-#if !defined (CLIENT_DLL)
+#if !defined ( CLIENT_DLL )
 
-		if ( pTargetPlayer->m_Shared.HasPasstimeBall() && g_pPasstimeLogic ) 
+		if ( pTargetPlayer->m_Shared.HasPasstimeBall() && g_pPasstimeLogic )
 		{
 			// This handles stealing the ball from teammates since there's no damage involved
 			// TODO find a better place for this
@@ -707,7 +713,7 @@ void CTFWeaponBaseMelee::Smack( void )
 	if ( !pPlayer )
 		return;
 
-#if !defined (CLIENT_DLL)
+#if !defined ( CLIENT_DLL )
 	// Move other players back to history positions based on local player's lag
 	lagcompensation->StartLagCompensation( pPlayer, pPlayer->GetCurrentCommand() );
 #endif
@@ -718,20 +724,62 @@ void CTFWeaponBaseMelee::Smack( void )
 	CALL_ATTRIB_HOOK_INT( nCleaveAttack, melee_cleave_attack );
 	bool bCleave = nCleaveAttack > 0;
 
+	bool affectsAllies = AffectsAllies();
+
 	// We hit, setup the smack.
-	CUtlVector<trace_t> targetTraceVector;
-	if ( DoSwingTraceInternal( trace, bCleave, &targetTraceVector ) )
+	CUtlVector< trace_t > targetTraceVector;
+	// Always calculate as if the weapon cleaves
+	bool hasHit = DoSwingTraceInternal( trace, true, &targetTraceVector );
+
+	if ( hasHit )
 	{
-		if ( bCleave )
+		// Some hacky stuff since trace_t isnt copyable/sortable
+		CUtlVector< vec_t > lengths;
+		CUtlMap< vec_t, int > lengthToIndex;
+		lengthToIndex.SetLessFunc( DefLessFunc( vec_t ) );
+		for ( int i = 0; i < targetTraceVector.Count(); ++i )
 		{
-			for ( int i=0; i<targetTraceVector.Count(); ++i )
-			{
-				bHitEnemyPlayer |= OnSwingHit( targetTraceVector[i] );
-			}
+			Vector vec = targetTraceVector[i].endpos - targetTraceVector[i].startpos;
+			vec_t length = vec.Length();
+			lengths.AddToTail( length );
+			lengthToIndex.Insert( length, i );
 		}
-		else
+
+		lengths.Sort();
+		
+		// Process from closest to furthest
+		for ( int idx = 0; idx < lengths.Count(); ++idx )
 		{
-			bHitEnemyPlayer = OnSwingHit( trace );
+			vec_t length = lengths[idx];
+			int i = lengthToIndex.FindElement( length, -1 );
+			if ( i == -1 ) continue;
+
+			if ( targetTraceVector[i].m_pEnt == nullptr )
+			{
+				break;
+			}
+
+			if ( targetTraceVector[i].m_pEnt->IsPlayer() )
+			{
+				CTFPlayer *pTargetPlayer = ToTFPlayer( targetTraceVector[i].m_pEnt );
+
+				// If the target player is on the same team AND
+				// Has a weapon that applies to allies 
+				if ( 
+					( pTargetPlayer->InSameTeam( pPlayer ) || pTargetPlayer->m_Shared.GetDisguiseTeam() == GetTeamNumber() ) &&
+					affectsAllies
+				 )
+				{
+					OnSwingHit( targetTraceVector[i] );
+					// The return doesnt tell us if we hit an ally, assume so and exit the loop
+					if ( !bCleave ) break;
+				}
+				else
+				{
+					bHitEnemyPlayer = OnSwingHit( targetTraceVector[i] );
+					if ( bHitEnemyPlayer && !bCleave ) break;
+				}
+			}
 		}
 	}
 	else
@@ -742,7 +790,7 @@ void CTFWeaponBaseMelee::Smack( void )
 		bool bIsCleanMiss = true;
 
 #ifdef GAME_DLL
-		for( int i=0; i<m_potentialVictimVector.Count(); ++i )
+		for ( int i = 0; i < m_potentialVictimVector.Count(); ++i )
 		{
 			if ( m_potentialVictimVector[i] != NULL && m_potentialVictimVector[i]->IsAlive() )
 			{
@@ -763,7 +811,7 @@ void CTFWeaponBaseMelee::Smack( void )
 		}
 	}
 
-#if !defined (CLIENT_DLL)
+#if !defined ( CLIENT_DLL )
 
 	// ACHIEVEMENT_TF_MEDIC_BONESAW_NOMISSES
 	if ( GetWeaponID() == TF_WEAPON_BONESAW )
@@ -794,19 +842,19 @@ float CTFWeaponBaseMelee::GetSmackTime( int iWeaponMode )
 	return gpGlobals->curtime + m_pWeaponInfo->GetWeaponData( iWeaponMode ).m_flSmackDelay;
 }
 
-void CTFWeaponBaseMelee::DoMeleeDamage( CBaseEntity* ent, trace_t& trace )
+void CTFWeaponBaseMelee::DoMeleeDamage( CBaseEntity *ent, trace_t& trace )
 {
 	DoMeleeDamage( ent, trace, 1.f );
 }
 
-void CTFWeaponBaseMelee::DoMeleeDamage( CBaseEntity* ent, trace_t& trace, float flDamageMod )
+void CTFWeaponBaseMelee::DoMeleeDamage( CBaseEntity *ent, trace_t& trace, float flDamageMod )
 {
 	// Get the current player.
 	CTFPlayer *pPlayer = GetTFPlayerOwner();
 	if ( !pPlayer )
 		return;
 
-	Vector vecForward; 
+	Vector vecForward;
 	AngleVectors( pPlayer->EyeAngles(), &vecForward );
 	Vector vecSwingStart = pPlayer->Weapon_ShootPosition();
 	Vector vecSwingEnd = vecSwingStart + vecForward * 48;
@@ -820,7 +868,7 @@ void CTFWeaponBaseMelee::DoMeleeDamage( CBaseEntity* ent, trace_t& trace, float 
 	CALL_ATTRIB_HOOK_INT( iCritFromBehind, crit_from_behind );
 	if ( iCritFromBehind > 0 )
 	{
-		Vector entForward; 
+		Vector entForward;
 		AngleVectors( ent->EyeAngles(), &entForward );
 
 		Vector toEnt = ent->GetAbsOrigin() - pPlayer->GetAbsOrigin();
@@ -872,8 +920,8 @@ void CTFWeaponBaseMelee::DoMeleeDamage( CBaseEntity* ent, trace_t& trace, float 
 	{
 		info.SetDamageForce( vec3_origin );
 	}
-	
-	ent->DispatchTraceAttack( info, vecForward, &trace ); 
+
+	ent->DispatchTraceAttack( info, vecForward, &trace );
 	ApplyMultiDamage();
 
 	OnEntityHit( ent, &info );
@@ -894,9 +942,9 @@ void CTFWeaponBaseMelee::DoMeleeDamage( CBaseEntity* ent, trace_t& trace, float 
 
 				// strange stat tracking
 				EconEntity_OnOwnerKillEaterEvent( this,
-												  ToTFPlayer( GetOwner() ),
-												  pVictimPlayer,
-												  kKillEaterEvent_PlayerTickle );
+					ToTFPlayer( GetOwner() ),
+					pVictimPlayer,
+					kKillEaterEvent_PlayerTickle );
 			}
 		}
 
@@ -935,16 +983,16 @@ void CTFWeaponBaseMelee::DoMeleeDamage( CBaseEntity* ent, trace_t& trace, float 
 			Vector origin = pPlayer->GetAbsOrigin();
 			Vector vecDir = pVictimPlayer->GetAbsOrigin() - origin;
 			VectorNormalize( vecDir );
-				
+
 			if ( !pVictimPlayer->m_Shared.InCond( TF_COND_INVULNERABLE_USER_BUFF ) &&
 				!pVictimPlayer->m_Shared.InCond( TF_COND_INVULNERABLE ) )
 			{
-				if ( pVictimPlayer->m_Shared.IsCarryingRune() ) 
+				if ( pVictimPlayer->m_Shared.IsCarryingRune() )
 				{
 					pVictimPlayer->DropRune();
 					ClientPrint( pVictimPlayer, HUD_PRINTCENTER, "#TF_Powerup_Knocked_Out" );
 				}
-				else if ( pVictimPlayer->HasTheFlag() )	
+				else if ( pVictimPlayer->HasTheFlag() )
 				{
 					pVictimPlayer->DropFlag();
 					ClientPrint( pVictimPlayer, HUD_PRINTCENTER, "#TF_CTF_PlayerDrop" );
@@ -981,7 +1029,7 @@ float CTFWeaponBaseMelee::GetForceScale( void )
 // Purpose: 
 // Output : float
 //-----------------------------------------------------------------------------
-float CTFWeaponBaseMelee::GetMeleeDamage( CBaseEntity *pTarget, int* piDamageType, int* piCustomDamage )
+float CTFWeaponBaseMelee::GetMeleeDamage( CBaseEntity *pTarget, int *piDamageType, int *piCustomDamage )
 {
 	float flDamage = m_pWeaponInfo->GetWeaponData( m_iWeaponMode ).m_nDamage;
 	CALL_ATTRIB_HOOK_FLOAT( flDamage, mult_dmg );
@@ -992,7 +1040,7 @@ float CTFWeaponBaseMelee::GetMeleeDamage( CBaseEntity *pTarget, int* piDamageTyp
 	{
 		if ( IsCurrentAttackACrit() )
 		{
-			return 0.0f;	
+			return 0.0f;
 		}
 
 		if ( piDamageType && *piDamageType & DMG_CRITICAL )
@@ -1112,7 +1160,7 @@ bool CTFWeaponBaseMelee::CalcIsAttackCriticalHelper( void )
 	// Track each request
 	m_nCritChecks++;
 
-	bool bCrit = ( RandomInt( 0, WEAPON_RANDOM_RANGE-1 ) < ( flCritChance ) * WEAPON_RANDOM_RANGE );
+	bool bCrit = ( RandomInt( 0, WEAPON_RANDOM_RANGE - 1 ) < ( flCritChance ) * WEAPON_RANDOM_RANGE );
 
 #ifdef _DEBUG
 	// Force seed to always say yes
@@ -1148,5 +1196,5 @@ char const *CTFWeaponBaseMelee::GetShootSound( int iIndex ) const
 		}
 	}
 
-	return BaseClass::GetShootSound(iIndex);
+	return BaseClass::GetShootSound( iIndex );
 }

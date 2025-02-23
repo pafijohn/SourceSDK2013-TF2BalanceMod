@@ -56,6 +56,7 @@ public:
 
 	virtual void	DoViewModelAnimation( void );
 
+	virtual bool	AffectsAllies();
 	virtual bool	DoSwingTrace( trace_t &trace );
 	virtual void	Smack( void );
 	virtual float	GetSmackTime( int iWeaponMode );
